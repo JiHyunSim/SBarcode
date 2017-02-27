@@ -17,7 +17,7 @@ IB_DESIGNABLE
 @property(nonatomic,strong)IBInspectable UIColor* textColor;
 @property(nonatomic)IBInspectable CGFloat padding;
 @property(nonatomic)IBInspectable BOOL hideCode;
-@property(nonatomic,strong)IBInspectable UIFont* textFont;
+@property(nonatomic,strong)UIFont* textFont;
 
 
 @end
