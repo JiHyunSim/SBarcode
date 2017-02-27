@@ -43,7 +43,39 @@
  *********************************************************************/
 
 
+
 #import "SBarcodeView.h"
+
+@interface UIColor (compare)
+- (BOOL)isEqualToColor:(UIColor *)otherColor;
+
+@end
+
+@implementation UIColor(compare)
+- (BOOL)isEqualToColor:(UIColor *)otherColor {
+    CGColorSpaceRef colorSpaceRGB = CGColorSpaceCreateDeviceRGB();
+    
+    UIColor *(^convertColorToRGBSpace)(UIColor*) = ^(UIColor *color) {
+        if (CGColorSpaceGetModel(CGColorGetColorSpace(color.CGColor)) == kCGColorSpaceModelMonochrome) {
+            const CGFloat *oldComponents = CGColorGetComponents(color.CGColor);
+            CGFloat components[4] = {oldComponents[0], oldComponents[0], oldComponents[0], oldComponents[1]};
+            CGColorRef colorRef = CGColorCreate( colorSpaceRGB, components );
+            
+            UIColor *color = [UIColor colorWithCGColor:colorRef];
+            CGColorRelease(colorRef);
+            return color;
+        } else
+            return color;
+    };
+    
+    UIColor *selfColor = convertColorToRGBSpace(self);
+    otherColor = convertColorToRGBSpace(otherColor);
+    CGColorSpaceRelease(colorSpaceRGB);
+    
+    return [selfColor isEqual:otherColor];
+}
+
+@end
 
 @interface SBarcodeView()
 
@@ -83,6 +115,9 @@
     return _barcodeEndcoding;
 }
 
+
+
+
 -(void)setCode:(NSString *)code
 {
     if (![_code isEqualToString:code]) {
@@ -94,9 +129,10 @@
     }
 }
 
+
 -(void)setBarColor:(UIColor *)barColor
 {
-    if (![_barColor isEqual:barColor]) {
+    if (![_barColor isEqual:barColor] || ![_barColor isEqualToColor:barColor]) {
         _barColor = [barColor copy];
         [self setNeedsLayout];
     }
@@ -104,19 +140,12 @@
 
 -(void)setTextColor:(UIColor *)textColor
 {
-    if (![_textColor isEqual:textColor]) {
+    if (![_textColor isEqual:textColor] || [_textColor isEqualToColor:textColor]) {
         _textColor = [textColor copy];
         [self setNeedsLayout];
     }
 }
 
--(void)setTextFont:(UIFont *)textFont
-{
-    if (![_textFont isEqual:textFont]) {
-        _textFont = [textFont copy];
-        [self setNeedsLayout];
-    }
-}
 
 -(void)setPadding:(CGFloat)padding
 {
@@ -133,6 +162,7 @@
         [self setNeedsLayout];
     }
 }
+
 
 
 // Only override drawRect: if you perform custom drawing.
@@ -250,11 +280,12 @@
 
 -(void)commonInit
 {
-    self.textFont = [UIFont fontWithName:@"HelveticaNeue-Medium" size:15.0f];
-    self.barColor = [UIColor blackColor];
-    self.textColor = [UIColor blackColor];
-    self.padding = 2.0f;
-    self.hideCode = NO;
+    if(!self.textFont)self.textFont = [UIFont fontWithName:@"HelveticaNeue-Medium" size:15.0f];
+    if (!self.barColor) {
+        self.barColor = [UIColor blackColor];
+    }
+    if(!self.textColor)self.textColor = [UIColor blackColor];
+    
     [self setNeedsLayout];
 }
 
